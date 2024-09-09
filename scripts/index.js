@@ -27,7 +27,7 @@ const createCard = ({ name, alt, link }) => {
     removeCard(card);
   });
 
-  return cardClone;
+  return card;
 };
 
 // @todo: Функция удаления карточки
