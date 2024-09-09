@@ -11,12 +11,13 @@ const templateCard = document.querySelector(TEMPLATE).content,
 // @todo: DOM узлы
 
 // @todo: Функция создания карточки
-const createCard = (name, link) => {
+const createCard = (name, alt, link) => {
   const cardClone = templateCard.cloneNode(true),
     cardImg = cardClone.querySelector(CARD_IMAGE),
     cardTitle = cardClone.querySelector(CARD_TITLE);
 
   cardImg.src = link;
+  cardImg.alt = alt;
   cardTitle.textContent = name;
 
   return cardClone;
@@ -33,6 +34,6 @@ const removeCard = (event) => {
 placesList.addEventListener("click", removeCard);
 
 // @todo: Вывести карточки на страницу
-initialCards.forEach(({ name, link }) => {
-  placesList.append(createCard(name, link));
+initialCards.forEach(({ name, alt, link }) => {
+  placesList.append(createCard(name, alt, link));
 });
