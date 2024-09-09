@@ -23,14 +23,16 @@ const createCard = ({ name, alt, link }) => {
   cardImg.alt = alt;
   cardTitle.textContent = name;
 
-  deleteBtn.addEventListener("click", removeCard);
+  deleteBtn.addEventListener("click", () => {
+    removeCard(card);
+  });
 
   return cardClone;
 };
 
 // @todo: Функция удаления карточки
-const removeCard = (event) => {
-  event.target.parentNode.remove();
+const removeCard = (card) => {
+  card.remove();
 };
 
 // @todo: Вывести карточки на страницу
