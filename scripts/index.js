@@ -14,9 +14,10 @@ const templateCard = document.querySelector(TEMPLATE).content,
 // @todo: Функция создания карточки
 const createCard = ({ name, alt, link }) => {
   const cardClone = templateCard.cloneNode(true),
-    cardImg = cardClone.querySelector(CARD_IMAGE),
-    cardTitle = cardClone.querySelector(CARD_TITLE),
-    deleteBtn = cardClone.querySelector(DELETE_BTN);
+    card = cardClone.querySelector(CARD),
+    cardImg = card.querySelector(CARD_IMAGE),
+    cardTitle = card.querySelector(CARD_TITLE),
+    deleteBtn = card.querySelector(DELETE_BTN);
 
   cardImg.src = link;
   cardImg.alt = alt;
@@ -29,8 +30,7 @@ const createCard = ({ name, alt, link }) => {
 
 // @todo: Функция удаления карточки
 const removeCard = (event) => {
-  [...event.target.parentNode.classList].includes("card") &&
-    event.target.parentNode.remove();
+  event.target.parentNode.remove();
 };
 
 // @todo: Вывести карточки на страницу
