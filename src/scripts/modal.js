@@ -1,58 +1,41 @@
-const keydown = ["Escape"];
+import { isEqual } from "./isEqual";
+
 let closeConfig = null;
 
-function removeListener(
-  listeners,
-  handler,
-  isDocumentSetListener = false,
-  documentTypeEvent = "click"
-) {
-  listeners.forEach((listener) =>
-    listener.removeEventListener("click", handler)
-  );
+function openModal(popup, configForClose = null) {
+  popup.classList.add("popup_is-opened");
 
-  isDocumentSetListener &&
-    document.removeEventListener(documentTypeEvent, handler);
+  if (configForClose) {
+    closeConfig = configForClose;
+
+    const { triggers } = closeConfig;
+
+    triggers.forEach((trigger) => {
+      trigger.addEventListener("click", closeModal);
+    });
+  }
+
+  document.addEventListener("keydown", closeModal);
 }
 
-function openModal(node, classAdd, configForClose = null) {
-  node.classList.add(...classAdd);
+function closeModal(e = null) {
+  e?.stopPropagation?.();
 
-  if (configForClose) closeConfig = configForClose;
-}
+  const { target, classRemove, triggers } = closeConfig;
 
-function closeModal(evt, classNames = [], modalNode = null) {
-  evt.stopPropagation();
+  if (isEqual(e) || e?.key === "Escape" || !e) {
+    classRemove.forEach((cl) => {
+      target.classList.remove(cl);
+    });
 
-  const isEquel = evt.target === evt.currentTarget;
-  const isParamsExist = classNames.length && modalNode;
+    triggers.forEach((trigger) => {
+      trigger.removeEventListener("click", closeModal);
+    });
 
-  const {
-    modal,
-    classRemove,
-    listeners,
-    isDocumentSetListener,
-    documentTypeEvent,
-  } = closeConfig;
-
-  if (isEquel || keydown.includes(evt.key)) {
-    // Функция вызвана со всеми параметрами
-    isParamsExist &&
-      classNames.forEach((item) => modalNode.classList.remove(item));
-
-    // Функция передана как ссылка и в openModal должен быть передан configForClose
-    !isParamsExist && closeModal(evt, classRemove, modal);
-
-    closeConfig &&
-      removeListener(
-        listeners,
-        closeModal,
-        isDocumentSetListener,
-        documentTypeEvent
-      );
+    document.removeEventListener("keydown", closeModal);
 
     closeConfig = null;
   }
 }
 
-export { openModal, closeModal, removeListener };
+export { openModal, closeModal };
