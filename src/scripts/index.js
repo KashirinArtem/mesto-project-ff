@@ -46,7 +46,11 @@ cardsData.forEach((item) => {
       templateCard,
       removeCard,
       popupConfig: popupTypeImageConfig,
-      openModal,
+      openModal: openModal(popupTypeImageConfig.popup, {
+        target: popupTypeImageConfig.popup,
+        triggers: [popupTypeImageConfig.popup, popupTypeImageConfig.closeBtn],
+        classRemove: ["popup_is-opened"],
+      }),
     })
   );
 });
@@ -55,11 +59,13 @@ profileEditBtn.addEventListener("click", (e) => {
   e.stopPropagation();
 
   if (isEqual(e)) {
-    openModal(popupTypeEdit, {
+    const openModalTypeEdit = openModal(popupTypeEdit, {
       target: popupTypeEdit,
       triggers: [popupTypeEdit, popupTypeEditClose],
       classRemove: ["popup_is-opened"],
     });
+
+    openModalTypeEdit();
 
     inputName.value = profileTitle.textContent;
     inputDescription.value = profileDescription.textContent;
@@ -70,11 +76,13 @@ profileAddBtn.addEventListener("click", (e) => {
   e.stopPropagation();
 
   if (isEqual(e)) {
-    openModal(popupTypeNewCard, {
+    const openModalTypeNewCard = openModal(popupTypeNewCard, {
       target: popupTypeNewCard,
       triggers: [popupTypeNewCard, popupTypeNewCardClose],
       classRemove: ["popup_is-opened"],
     });
+
+    openModalTypeNewCard();
   }
 });
 

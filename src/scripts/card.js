@@ -30,11 +30,7 @@ function createCard(configCard) {
     e.stopPropagation();
 
     if (isEqual(e)) {
-      openModal(popup, {
-        target: popup,
-        triggers: [popup, closeBtn],
-        classRemove: ["popup_is-opened"],
-      });
+      openModal();
 
       image.src = link;
       image.alt = alt;
