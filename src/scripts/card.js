@@ -1,8 +1,7 @@
 import { isEqual } from "./isEqual";
 
 function createCard(configCard) {
-  const { data, templateCard, removeCard, likeCard, popupConfig, openModal } =
-    configCard;
+  const { data, templateCard, removeCard, popupConfig, openModal } = configCard;
 
   const cardClone = templateCard.cloneNode(true),
     card = cardClone.querySelector(".card"),
@@ -21,7 +20,11 @@ function createCard(configCard) {
 
   deleteBtn.addEventListener("click", removeCard);
 
-  likeBtn.addEventListener("click", likeCard);
+  likeBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    if (isEqual(e)) e.target.classList.toggle("card__like-button_is-active");
+  });
 
   cardImg.addEventListener("click", (e) => {
     e.stopPropagation();

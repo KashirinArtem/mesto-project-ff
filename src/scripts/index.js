@@ -3,7 +3,6 @@ import { initialCards as cardsData } from "./cards";
 import { createCard } from "./card";
 import { openModal } from "./modal";
 import { removeCard } from "./removeCardHandler";
-import { likeCard } from "./likeCardHandler";
 import { handlerForm } from "./formHandler";
 import { isEqual } from "./isEqual";
 
@@ -29,7 +28,8 @@ const popupTypeImage = document.querySelector(".popup_type_image"),
   };
 
 const popupTypeNewCard = document.querySelector(".popup_type_new-card"),
-  popupTypeNewCardClose = popupTypeNewCard.querySelector(".popup__close");
+  popupTypeNewCardClose = popupTypeNewCard.querySelector(".popup__close"),
+  popupTypeNewCardForm = popupTypeNewCard.querySelector(".popup__form");
 
 const popupTypeEdit = document.querySelector(".popup_type_edit"),
   popupTypeEditClose = popupTypeEdit.querySelector(".popup__close"),
@@ -45,7 +45,6 @@ cardsData.forEach((item) => {
       data: item,
       templateCard,
       removeCard,
-      likeCard,
       popupConfig: popupTypeImageConfig,
       openModal,
     })
@@ -79,49 +78,37 @@ profileAddBtn.addEventListener("click", (e) => {
   }
 });
 
-document.addEventListener("submit", (e) => {
+popupTypeEditForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
   e.stopPropagation();
 
-  const attributeValue = e.target.getAttribute("name");
+  const { name, description } = handlerForm(e.target, ["name", "description"]);
 
-  switch (attributeValue) {
-    case "edit-profile": {
-      const { name, description } = handlerForm(e.target, [
-        "name",
-        "description",
-      ]);
+  profileTitle.textContent = name;
+  profileDescription.textContent = description;
+});
 
-      profileTitle.textContent = name;
-      profileDescription.textContent = description;
+popupTypeNewCardForm.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-      break;
-    }
-    case "new-place": {
-      const place = handlerForm(e.target, ["place-name", "link"]);
+  e.stopPropagation();
 
-      const card = createCard({
-        data: {
-          name: place["place-name"],
-          link: place.link,
-          alt: place["place-name"],
-        },
-        templateCard,
-        removeCard,
-        likeCard,
-        openModal,
-        popupConfig: popupTypeImageConfig,
-      });
+  const place = handlerForm(e.target, ["place-name", "link"]);
 
-      placesList.insertAdjacentElement("afterbegin", card);
+  const card = createCard({
+    data: {
+      name: place["place-name"],
+      link: place.link,
+      alt: place["place-name"],
+    },
+    templateCard,
+    removeCard,
+    openModal,
+    popupConfig: popupTypeImageConfig,
+  });
 
-      break;
-    }
-    default: {
-      console.log("Something else");
-    }
-  }
+  placesList.insertAdjacentElement("afterbegin", card);
 });
 
 // https://i.pinimg.com/originals/5b/6e/ca/5b6eca63605bea0eeb48db43f77fa0ce.jpg
