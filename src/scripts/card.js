@@ -12,7 +12,7 @@ function createCard(configCard) {
 
   const { name, alt, link } = data;
 
-  const { popup, closeBtn, image, caption } = popupConfig;
+  const { image, caption } = popupConfig;
 
   cardImg.src = link;
   cardImg.alt = alt;

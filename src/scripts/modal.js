@@ -35,6 +35,8 @@ function closeModal(e = null) {
     });
 
     document.removeEventListener("keydown", closeModal);
+
+    closeConfig = null;
   }
 }
 
