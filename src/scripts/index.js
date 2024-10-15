@@ -21,27 +21,11 @@ const popupTypeImage = document.querySelector(".popup_type_image"),
   popupTypeImageImg = popupTypeImage.querySelector(".popup__image"),
   popupTypeImageCaption = popupTypeImage.querySelector(".popup__caption"),
   popupTypeImageConfig = {
+    popup: popupTypeImage,
+    closeBtn: popupTypeImageClose,
     image: popupTypeImageImg,
     caption: popupTypeImageCaption,
   };
-
-const openModalPopupTypeImage = openModal(popupTypeImageConfig.popup, {
-  target: popupTypeImageConfig.popup,
-  triggers: [popupTypeImageConfig.popup, popupTypeImageConfig.closeBtn],
-  classRemove: ["popup_is-opened"],
-});
-
-const openModalTypeNewCard = openModal(popupTypeNewCard, {
-  target: popupTypeNewCard,
-  triggers: [popupTypeNewCard, popupTypeNewCardClose],
-  classRemove: ["popup_is-opened"],
-});
-
-const openModalTypeEdit = openModal(popupTypeEdit, {
-  target: popupTypeEdit,
-  triggers: [popupTypeEdit, popupTypeEditClose],
-  classRemove: ["popup_is-opened"],
-});
 
 const popupTypeNewCard = document.querySelector(".popup_type_new-card"),
   popupTypeNewCardClose = popupTypeNewCard.querySelector(".popup__close"),
@@ -55,14 +39,33 @@ const popupTypeEdit = document.querySelector(".popup_type_edit"),
   ),
   inputName = popupTypeEditForm.querySelector(".popup__input_type_name");
 
+function onModalPicture(e, data) {
+  e.stopPropagation();
+
+  if (isEqual(e)) {
+    const modalPopupTypeImage = openModal(popupTypeImageConfig.popup, {
+      target: popupTypeImageConfig.popup,
+      triggers: [popupTypeImageConfig.popup, popupTypeImageConfig.closeBtn],
+      classRemove: ["popup_is-opened"],
+    });
+
+    const { name, alt, link } = data;
+
+    popupTypeImageConfig.image.src = link;
+    popupTypeImageConfig.image.alt = alt;
+    popupTypeImageConfig.caption.textContent = name;
+
+    modalPopupTypeImage();
+  }
+}
+
 cardsData.forEach((item) => {
   placesList.append(
     createCard({
       data: item,
       templateCard,
       removeCard,
-      popupConfig: popupTypeImageConfig,
-      openModal: openModalPopupTypeImage,
+      openModal: onModalPicture,
     })
   );
 });
@@ -71,6 +74,12 @@ profileEditBtn.addEventListener("click", (e) => {
   e.stopPropagation();
 
   if (isEqual(e)) {
+    const openModalTypeEdit = openModal(popupTypeEdit, {
+      target: popupTypeEdit,
+      triggers: [popupTypeEdit, popupTypeEditClose],
+      classRemove: ["popup_is-opened"],
+    });
+
     openModalTypeEdit();
 
     inputName.value = profileTitle.textContent;
@@ -82,6 +91,12 @@ profileAddBtn.addEventListener("click", (e) => {
   e.stopPropagation();
 
   if (isEqual(e)) {
+    const openModalTypeNewCard = openModal(popupTypeNewCard, {
+      target: popupTypeNewCard,
+      triggers: [popupTypeNewCard, popupTypeNewCardClose],
+      classRemove: ["popup_is-opened"],
+    });
+
     openModalTypeNewCard();
   }
 });
@@ -112,8 +127,7 @@ popupTypeNewCardForm.addEventListener("submit", (e) => {
     },
     templateCard,
     removeCard,
-    openModal: openModalPopupTypeImage,
-    popupConfig: popupTypeImageConfig,
+    openModal: onModalPicture,
   });
 
   placesList.insertAdjacentElement("afterbegin", card);
