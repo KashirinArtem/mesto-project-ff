@@ -3,21 +3,19 @@ import { isEqual } from "./isEqual";
 let closeConfig = null;
 
 function openModal(popup, configForClose = null) {
-  return () => {
-    popup.classList.add("popup_is-opened");
+  popup.classList.add("popup_is-opened");
 
-    if (configForClose) {
-      closeConfig = configForClose;
+  if (configForClose) {
+    closeConfig = configForClose;
 
-      const { triggers } = closeConfig;
+    const { triggers } = closeConfig;
 
-      triggers.forEach((trigger) => {
-        trigger.addEventListener("click", closeModal);
-      });
-    }
+    triggers.forEach((trigger) => {
+      trigger.addEventListener("click", closeModal);
+    });
+  }
 
-    document.addEventListener("keydown", closeModal);
-  };
+  document.addEventListener("keydown", closeModal);
 }
 
 function closeModal(e = null) {
@@ -35,8 +33,6 @@ function closeModal(e = null) {
     });
 
     document.removeEventListener("keydown", closeModal);
-
-    closeConfig = null;
   }
 }
 

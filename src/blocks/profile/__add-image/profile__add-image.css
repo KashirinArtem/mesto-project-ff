@@ -1,0 +1,18 @@
+.profile__add-image {
+    width: 120px;
+    height: 120px;
+    position: absolute;
+    border-radius: 50%;
+    outline: none;
+    border: none;
+    display: block;
+    opacity: 1;
+    cursor: pointer;
+    background: transparent;
+    transition: opacity .3s ease-in-out, background-color .3s ease-in-out, background-image .3s ease-in-out;
+}
+
+.profile__add-image:hover {
+    opacity: .5;
+    background: #000 50%/26px no-repeat url(../../../images/edit-icon.svg);
+}

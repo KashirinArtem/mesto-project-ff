@@ -10,4 +10,10 @@
 @import url('../blocks/popup/popup.css');
 @import url('../blocks/popup/_is-animated/popup_is-animated.css');
 @import url('../blocks/popup/_is-opened/popup_is-opened.css');
-
+@import url('../blocks/popup/_button_disabled/popup__button_disabled.css');
+@import url('../blocks/popup/_input_type_error/popup__input_type_error.css');
+@import url('../blocks/popup/_input-error/popup__input-error.css');
+@import url('../blocks/popup/_input_success/input_type_success.css');
+@import url('../blocks/card/__like-group/card__like-group.css');
+@import url('../blocks/card/__like-count/card__like-count.css');
+@import url('../blocks/profile/__add-image/profile__add-image.css');
