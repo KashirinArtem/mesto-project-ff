@@ -1,23 +1,18 @@
 import "../pages/index.css";
 import { createCard } from "./card";
-import { closeModal, openModal } from "./modal";
-import { removeCard } from "./removeCardHandler";
-import { handlerForm } from "./formHandler";
+import { closeByOverlayClick, closeModal, openModal } from "./modal";
 import { isEqual } from "./isEqual";
-import {
-  enableValidation,
-  handlerInputValidation,
-  initialStateStyleInput,
-} from "./validation";
+import { clearValidation, enableValidation } from "./validation";
 import {
   deleteCard,
   deleteLike,
-  getCardsAndUser,
+  getInitialData,
   patchUser,
   postNewCard,
   putLike,
   setAvatar,
 } from "./api.js";
+import { loadingContent } from "./utils.js";
 
 const templateCard = document.querySelector("#card-template").content;
 
@@ -34,13 +29,7 @@ const profile = document.querySelector(".profile"),
 const popupTypeImage = document.querySelector(".popup_type_image"),
   popupTypeImageClose = popupTypeImage.querySelector(".popup__close"),
   popupTypeImageImg = popupTypeImage.querySelector(".popup__image"),
-  popupTypeImageCaption = popupTypeImage.querySelector(".popup__caption"),
-  popupTypeImageConfig = {
-    popup: popupTypeImage,
-    closeBtn: popupTypeImageClose,
-    image: popupTypeImageImg,
-    caption: popupTypeImageCaption,
-  };
+  popupTypeImageCaption = popupTypeImage.querySelector(".popup__caption");
 
 const popupTypeNewCard = document.querySelector(".popup_type_new-card"),
   popupTypeNewCardClose = popupTypeNewCard.querySelector(".popup__close"),
@@ -74,47 +63,44 @@ const popupConfirmDelete = document.querySelector(".popup_confirm_delete"),
 
 let userId = null;
 
-function onModalPicture(e, data) {
-  popupTypeImageConfig.image.src = "";
-  popupTypeImageConfig.image.alt = "";
-  popupTypeImageConfig.caption.textContent = "";
+function onModalPicture(e, { name, alt, link }) {
+  popupTypeImageImg.src =
+    popupTypeImageImg.alt =
+    popupTypeImageCaption.textContent =
+      "";
 
   e.stopPropagation();
 
   if (isEqual(e)) {
-    const { name, alt, link } = data;
+    popupTypeImageImg.src = link;
+    popupTypeImageImg.alt = alt;
+    popupTypeImageCaption.textContent = name;
 
-    popupTypeImageConfig.image.src = link;
-    popupTypeImageConfig.image.alt = alt;
-    popupTypeImageConfig.caption.textContent = name;
+    openModal(popupTypeImage);
 
-    openModal(popupTypeImageConfig.popup, {
-      target: popupTypeImageConfig.popup,
-      triggers: [popupTypeImageConfig.popup, popupTypeImageConfig.closeBtn],
-      classRemove: ["popup_is-opened"],
-    });
+    popupTypeImage.addEventListener("click", closeByOverlayClick);
+    popupTypeImageClose.addEventListener("click", (e) =>
+      closeModal(popupTypeImage)
+    );
   }
 }
 
-function onRemoveCard(e) {
+function onRemoveCard(e, callbackFn) {
   e.stopPropagation();
 
   const remove = () => {
-    closeModal();
-
-    removeCard(e);
-
     deleteCard(e.target.closest(".card").id).catch(console.log);
 
-    popupConfirmOk.removeEventListener("click", remove);
+    callbackFn();
+
+    closeModal(popupConfirmDelete);
   };
 
   if (isEqual(e)) {
-    openModal(popupConfirmDelete, {
-      target: popupConfirmDelete,
-      triggers: [popupConfirmDelete, popupConfirmClose],
-      classRemove: ["popup_is-opened"],
-    });
+    openModal(popupConfirmDelete);
+
+    popupConfirmDelete.addEventListener("click", closeByOverlayClick);
+    popupConfirmClose.addEventListener("click", (e) => closeModal(e.target));
 
     popupConfirmOk.addEventListener("click", remove);
   }
@@ -127,9 +113,7 @@ function setProfile(user) {
   profileDescription.textContent = about;
   profileImage.style.backgroundImage = `url(${avatar})`;
 
-  if (!userId) {
-    userId = user._id;
-  }
+  if (!userId) userId = _id;
 }
 
 function renderCards(cards) {
@@ -138,8 +122,8 @@ function renderCards(cards) {
       createCard({
         data: card,
         templateCard,
-        removeCard: onRemoveCard,
-        openModal: onModalPicture,
+        onRemoveCard,
+        onModalPicture,
         cardLikeApi: [putLike, deleteLike],
         userId,
       })
@@ -147,11 +131,7 @@ function renderCards(cards) {
   });
 }
 
-function loadingContent(isLoadingContent, btn) {
-  btn.textContent = isLoadingContent ? "Сохранение..." : "Сохранить";
-}
-
-getCardsAndUser()
+getInitialData()
   .then((result) => {
     const [user, cards] = result;
 
@@ -161,23 +141,31 @@ getCardsAndUser()
   })
   .catch(console.log);
 
+// -------------------------
+
 profileEditBtn.addEventListener("click", (e) => {
   e.stopPropagation();
 
   if (isEqual(e)) {
-    openModal(popupTypeEdit, {
-      target: popupTypeEdit,
-      triggers: [popupTypeEdit, popupTypeEditClose],
-      classRemove: ["popup_is-opened"],
-    });
+    openModal(popupTypeEdit);
 
     inputName.value = profileTitle.textContent;
     inputDescription.value = profileDescription.textContent;
 
+    popupTypeEdit.addEventListener("click", closeByOverlayClick);
+    popupTypeEditClose.addEventListener("click", (e) =>
+      closeModal(popupTypeEdit)
+    );
+
+    clearValidation(
+      [inputDescription, inputName],
+      ["popup__input_type_error", "popup__input_type_success"]
+    );
+
     enableValidation({
       form: popupTypeEditForm,
       inputs: [inputDescription, inputName],
-      submit: btnTypeEditSubmit,
+      submitBtn: btnTypeEditSubmit,
       inactiveButtonClass: "popup__button_disabled",
       inputErrorClass: "popup__input_type_error",
       inputSuccessClass: "popup__input_type_success",
@@ -192,9 +180,7 @@ popupTypeEditForm.addEventListener("submit", (e) => {
 
   loadingContent(true, btnTypeEditSubmit);
 
-  const { name, description } = handlerForm(e.target, ["name", "description"]);
-
-  patchUser({ name, about: description })
+  patchUser({ name: inputName.value, about: inputDescription.value })
     .then((result) => {
       loadingContent(false, btnTypeEditSubmit);
 
@@ -202,27 +188,38 @@ popupTypeEditForm.addEventListener("submit", (e) => {
     })
     .catch(console.log);
 
-  [inputDescription, inputName].forEach((input) => {
-    input.removeEventListener("click", handlerInputValidation);
-  });
+  closeModal(popupTypeEdit);
+
+  clearValidation(
+    [inputDescription, inputName],
+    ["popup__input_type_error", "popup__input_type_success"]
+  );
 });
+
+// -----------------------
 
 profileAddBtn.addEventListener("click", (e) => {
   e.stopPropagation();
 
   if (isEqual(e)) {
-    openModal(popupTypeNewCard, {
-      target: popupTypeNewCard,
-      triggers: [popupTypeNewCard, popupTypeNewCardClose],
-      classRemove: ["popup_is-opened"],
-    });
+    openModal(popupTypeNewCard);
 
     popupTypeNewCardForm.reset();
+
+    popupTypeNewCard.addEventListener("click", closeByOverlayClick);
+    popupTypeNewCardClose.addEventListener("click", (e) =>
+      closeModal(popupTypeNewCard)
+    );
+
+    clearValidation(
+      [inputPlaceName, inputUrl],
+      ["popup__input_type_error", "popup__input_type_success"]
+    );
 
     enableValidation({
       form: popupTypeNewCardForm,
       inputs: [inputPlaceName, inputUrl],
-      submit: btnTypeNewCardSubmit,
+      submitBtn: btnTypeNewCardSubmit,
       inactiveButtonClass: "popup__button_disabled",
       inputErrorClass: "popup__input_type_error",
       inputSuccessClass: "popup__input_type_success",
@@ -237,17 +234,15 @@ popupTypeNewCardForm.addEventListener("submit", (e) => {
 
   loadingContent(true, btnTypeNewCardSubmit);
 
-  const place = handlerForm(e.target, ["place-name", "link"]);
-
-  postNewCard({ name: place["place-name"], link: place.link })
+  postNewCard({ name: inputPlaceName.value, link: inputUrl.value })
     .then((result) => {
       loadingContent(false, btnTypeNewCardSubmit);
 
       const card = createCard({
         data: result,
         templateCard,
-        removeCard: onRemoveCard,
-        openModal: onModalPicture,
+        onRemoveCard,
+        onModalPicture,
         cardLikeApi: [putLike, deleteLike],
         userId,
       });
@@ -256,25 +251,40 @@ popupTypeNewCardForm.addEventListener("submit", (e) => {
     })
     .catch(console.log);
 
-  [inputPlaceName, inputUrl].forEach((input) => {
-    input.removeEventListener("click", handlerInputValidation);
-  });
+  popupTypeNewCardForm.reset();
+
+  closeModal(popupTypeNewCard);
+
+  clearValidation(
+    [inputPlaceName, inputUrl],
+    ["popup__input_type_error", "popup__input_type_success"]
+  );
 });
+
+// ----------------------
 
 profileAddImageBtn.addEventListener("click", (e) => {
   e.stopPropagation();
 
   if (isEqual(e)) {
-    openModal(popupTypeProfile, {
-      target: popupTypeProfile,
-      triggers: [popupTypeProfile, popupTypeProfileClose],
-      classRemove: ["popup_is-opened"],
-    });
+    openModal(popupTypeProfile);
+
+    popupTypeProfileForm.reset();
+
+    popupTypeProfile.addEventListener("click", closeByOverlayClick);
+    popupTypeProfileClose.addEventListener("click", (e) =>
+      closeModal(popupTypeProfile)
+    );
+
+    clearValidation(
+      [popupTypeProfileLink],
+      ["popup__input_type_error", "popup__input_type_success"]
+    );
 
     enableValidation({
       form: popupTypeProfileForm,
       inputs: [popupTypeProfileLink],
-      submit: popupTypeProfileSubmit,
+      submitBtn: popupTypeProfileSubmit,
       inactiveButtonClass: "popup__button_disabled",
       inputErrorClass: "popup__input_type_error",
       inputSuccessClass: "popup__input_type_success",
@@ -289,17 +299,22 @@ popupTypeProfileForm.addEventListener("submit", (e) => {
 
   loadingContent(true, popupTypeProfileSubmit);
 
-  const { link } = handlerForm(e.target, ["link"]);
-
-  popupTypeProfileLink.removeEventListener("click", handlerInputValidation);
-
-  setAvatar(link)
+  setAvatar(popupTypeProfileLink.value)
     .then(({ avatar }) => {
       loadingContent(false, popupTypeProfileSubmit);
 
       profileImage.style.backgroundImage = `url(${avatar})`;
     })
     .catch(console.log);
+
+  popupTypeProfileForm.reset();
+
+  closeModal(popupTypeProfile);
+
+  clearValidation(
+    [popupTypeProfileLink],
+    ["popup__input_type_error", "popup__input_type_success"]
+  );
 });
 
 // https://i.pinimg.com/originals/5b/6e/ca/5b6eca63605bea0eeb48db43f77fa0ce.jpg

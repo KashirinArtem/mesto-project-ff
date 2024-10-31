@@ -30,7 +30,7 @@ function patchUser(userInfo) {
   }).then(getResponse);
 }
 
-function getCardsAndUser() {
+function getInitialData() {
   return Promise.all([getUser(), getCards()]);
 }
 
@@ -75,7 +75,7 @@ function setAvatar(avatar) {
 }
 
 export {
-  getCardsAndUser,
+  getInitialData,
   patchUser,
   postNewCard,
   deleteCard,

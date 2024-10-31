@@ -1,78 +1,28 @@
-let config = null;
-
-function isFormValid() {
-  const { form } = config;
-
-  return form.checkValidity();
-}
-
-function isInputValid(input) {
-  return input.validity.valid;
-}
-
-function disabledButton() {
-  const { submit, inactiveButtonClass } = config;
-
-  submit.setAttribute("disabled", true);
-  submit.classList.add(inactiveButtonClass);
-}
-function initialStateStyleInput(input) {
-  const { inputErrorClass, inputSuccessClass } = config;
-
-  removeClass(input, inputErrorClass);
-  removeClass(input, inputSuccessClass);
-}
-
-function undisabledButton() {
-  const { submit, inactiveButtonClass } = config;
-
-  submit.removeAttribute("disabled");
-  submit.classList.remove(inactiveButtonClass);
-}
-
 function resetErrorMessage(element) {
   element.textContent = "";
 }
 
-function addClass(elem, className) {
-  elem.classList.add(className);
+function badInput(input, successClass, errorClass) {
+  input.classList.remove(successClass);
+
+  input.classList.add(errorClass);
 }
 
-function removeClass(elem, className) {
-  elem.classList.remove(className);
+function successInput(input, successClass, errorClass) {
+  input.classList.remove(errorClass);
+
+  input.classList.add(successClass);
 }
 
-function badInput(input) {
-  const { inputErrorClass, inputSuccessClass } = config;
+function hideInputError(input, errorClass, successClass) {
+  successInput(input, successClass, errorClass);
 
-  removeClass(input, inputSuccessClass);
-  addClass(input, inputErrorClass);
+  resetErrorMessage(input.nextElementSibling);
 }
 
-function successInput(input) {
-  const { inputErrorClass, inputSuccessClass } = config;
+function showInputError(input, errorClass, successClass) {
+  badInput(input, successClass, errorClass);
 
-  removeClass(input, inputErrorClass);
-  addClass(input, inputSuccessClass);
-}
-
-function handlerInputValidation(e) {
-  const input = e.target;
-
-  isFormValid() ? undisabledButton() : disabledButton();
-
-  if (isInputValid(input)) {
-    successInput(input);
-
-    resetErrorMessage(input.nextElementSibling);
-  } else {
-    badInput(input);
-
-    setErrorMessage(input);
-  }
-}
-
-function setErrorMessage(input) {
   const errorContainer = input.nextElementSibling;
 
   const { patternMismatch, valueMissing, tooLong, tooShort, typeMismatch } =
@@ -87,6 +37,7 @@ function setErrorMessage(input) {
   typeMismatch && errors.push(input.dataset.error);
 
   valueMissing && errors.push("Обязательно к заполнению");
+
   tooLong &&
     errors.push(
       `Не более ${input.getAttribute("maxlength")} символов, сейчас: ${
@@ -108,20 +59,75 @@ function setErrorMessage(input) {
   errors = [];
 }
 
-function enableValidation(configForm, fn) {
-  const { inputs, form } = (config = { ...configForm });
+function disableSubmitButton(btn, className) {
+  btn.classList.add(className);
+  btn.disabled = true;
+}
 
-  disabledButton();
+function enableSubmitButton(btn, className) {
+  btn.classList.remove(className);
+  btn.disabled = false;
+}
 
-  form.reset();
+function hasInvalidInput(inputs) {
+  return inputs.some((input) => !input.validity.valid);
+}
 
+function toggleButtonState(inputs, submitBtn, inactiveButtonClass) {
+  hasInvalidInput(inputs)
+    ? disableSubmitButton(submitBtn, inactiveButtonClass)
+    : enableSubmitButton(submitBtn, inactiveButtonClass);
+}
+
+function checkInputValidity(input, inputErrorClass, inputSuccessClass) {
+  input.validity.valid
+    ? hideInputError(input, inputErrorClass, inputSuccessClass)
+    : showInputError(input, inputErrorClass, inputSuccessClass);
+}
+
+function setEventListeners(
+  inputs,
+  submitBtn,
+  inactiveButtonClass,
+  inputErrorClass,
+  inputSuccessClass
+) {
   inputs.forEach((input) => {
-    input.addEventListener("input", handlerInputValidation);
+    input.addEventListener("input", (e) => {
+      toggleButtonState(inputs, submitBtn, inactiveButtonClass);
 
-    initialStateStyleInput(input);
-
-    resetErrorMessage(input.nextElementSibling);
+      checkInputValidity(input, inputErrorClass, inputSuccessClass);
+    });
   });
 }
 
-export { enableValidation, handlerInputValidation, initialStateStyleInput };
+function enableValidation({
+  form,
+  inputs,
+  submitBtn,
+  inactiveButtonClass,
+  inputErrorClass,
+  inputSuccessClass,
+}) {
+  form.addEventListener("submit", (e) => e.preventDefault());
+
+  disableSubmitButton(submitBtn, inactiveButtonClass);
+
+  setEventListeners(
+    inputs,
+    submitBtn,
+    inactiveButtonClass,
+    inputErrorClass,
+    inputSuccessClass
+  );
+}
+
+function clearValidation(inputs, removeClassNames) {
+  inputs.forEach((input) => {
+    resetErrorMessage(input.nextElementSibling);
+
+    removeClassNames.forEach((cl) => input.classList.remove(cl));
+  });
+}
+
+export { enableValidation, clearValidation };

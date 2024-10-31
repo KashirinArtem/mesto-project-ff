@@ -1,39 +1,33 @@
 import { isEqual } from "./isEqual";
 
-let closeConfig = null;
+function openModal(popupElement) {
+  popupElement.classList.add("popup_is-opened");
 
-function openModal(popup, configForClose = null) {
-  popup.classList.add("popup_is-opened");
+  popupElement.addEventListener("click", closeByOverlayClick);
 
-  if (configForClose) {
-    closeConfig = configForClose;
-
-    const { triggers } = closeConfig;
-
-    triggers.forEach((trigger) => {
-      trigger.addEventListener("click", closeModal);
-    });
-  }
-
-  document.addEventListener("keydown", closeModal);
+  document.addEventListener("keydown", closeByEsc);
 }
 
-function closeModal(e = null) {
-  e?.stopPropagation?.();
+function closeModal(popupElement) {
+  popupElement.classList.remove("popup_is-opened");
 
-  const { target, classRemove, triggers } = closeConfig;
+  popupElement.removeEventListener("click", closeByOverlayClick);
 
-  if (isEqual(e) || e?.key === "Escape" || !e) {
-    classRemove.forEach((cl) => {
-      target.classList.remove(cl);
-    });
+  document.removeEventListener("keydown", closeByEsc);
+}
 
-    triggers.forEach((trigger) => {
-      trigger.removeEventListener("click", closeModal);
-    });
+function closeByOverlayClick(e) {
+  e.stopPropagation();
 
-    document.removeEventListener("keydown", closeModal);
+  if (!isEqual(e)) return;
+
+  closeModal(e.currentTarget);
+}
+
+function closeByEsc(e) {
+  if (e.key === "Escape") {
+    closeModal(document.querySelector(".popup_is-opened"));
   }
 }
 
-export { openModal, closeModal };
+export { openModal, closeModal, closeByOverlayClick };

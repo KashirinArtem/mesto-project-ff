@@ -1,8 +1,14 @@
 import { isEqual } from "./isEqual";
 
 function createCard(configCard) {
-  const { data, templateCard, removeCard, openModal, userId, cardLikeApi } =
-    configCard;
+  const {
+    data,
+    templateCard,
+    onRemoveCard,
+    onModalPicture,
+    userId,
+    cardLikeApi,
+  } = configCard;
 
   const { likes, link, name, _id, owner } = data;
 
@@ -17,17 +23,24 @@ function createCard(configCard) {
   card.id = _id;
 
   cardImg.src = link;
-  cardImg.alt = name;
-  cardTitle.textContent = name;
+  cardImg.alt = cardTitle.textContent = name;
   likeCount.textContent = likes.length;
 
-  if (owner._id === userId) deleteBtn.addEventListener("click", removeCard);
-  else deleteBtn.style.display = "none";
+  const handlerRemoveCard = (e) => {
+    onRemoveCard(e, () => {
+      likeBtn.removeEventListener("click", handlerLike);
+      cardImg.removeEventListener("click", handlerModalPicture);
+      deleteBtn.removeEventListener("click", handlerRemoveCard);
 
-  likes.forEach((ownerLike) => {
-    if (ownerLike._id === userId)
-      likeBtn.classList.add("card__like-button_is-active");
-  });
+      card.remove();
+    });
+  };
+
+  const handlerModalPicture = (e) => {
+    e.stopPropagation();
+
+    isEqual(e) && onModalPicture(e, data);
+  };
 
   const handlerLike = (e) => {
     e.stopPropagation();
@@ -59,9 +72,20 @@ function createCard(configCard) {
     }
   };
 
+  const setActiveLike = (ownerLike) => {
+    if (ownerLike._id === userId)
+      likeBtn.classList.add("card__like-button_is-active");
+  };
+
+  if (owner._id === userId)
+    deleteBtn.addEventListener("click", handlerRemoveCard);
+  else deleteBtn.style.display = "none";
+
+  likes.forEach(setActiveLike);
+
   likeBtn.addEventListener("click", handlerLike);
 
-  cardImg.addEventListener("click", (e) => openModal(e, data));
+  cardImg.addEventListener("click", handlerModalPicture);
 
   return card;
 }
