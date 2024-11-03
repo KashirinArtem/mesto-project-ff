@@ -101,28 +101,32 @@ function setEventListeners(
   });
 }
 
-function enableValidation({
-  form,
-  inputs,
-  submitBtn,
-  inactiveButtonClass,
-  inputErrorClass,
-  inputSuccessClass,
-}) {
-  form.addEventListener("submit", (e) => e.preventDefault());
+function enableValidation(validationConfig) {
+  validationConfig.forEach(
+    ({
+      form,
+      submitBtn,
+      inactiveButtonClass,
+      inputs,
+      inputErrorClass,
+      inputSuccessClass,
+    }) => {
+      form.addEventListener("submit", (e) => e.preventDefault());
 
-  disableSubmitButton(submitBtn, inactiveButtonClass);
+      disableSubmitButton(submitBtn, inactiveButtonClass);
 
-  setEventListeners(
-    inputs,
-    submitBtn,
-    inactiveButtonClass,
-    inputErrorClass,
-    inputSuccessClass
+      setEventListeners(
+        inputs,
+        submitBtn,
+        inactiveButtonClass,
+        inputErrorClass,
+        inputSuccessClass
+      );
+    }
   );
 }
 
-function clearValidation(inputs, removeClassNames) {
+function clearValidation({ inputs, removeClassNames }) {
   inputs.forEach((input) => {
     resetErrorMessage(input.nextElementSibling);
 

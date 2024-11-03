@@ -12,4 +12,10 @@
   border-radius: 10px;
   position: relative;
   overflow: hidden;
+  transition: transform ease .3s;
+
+}
+
+.card:hover {
+  transform: scale(1.03);
 }
